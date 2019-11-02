@@ -13,4 +13,7 @@ public interface CrmConstant {
     public static final Integer UNLOGIN_CODE = 305;
     public static final String UNLOGIN_MSG = "用户未登录";
 
+    public static final Integer DEFAULT_CODE = 100;
+    public static final String DEFAULT_MSG = "服务器连接错误";
+
 }
