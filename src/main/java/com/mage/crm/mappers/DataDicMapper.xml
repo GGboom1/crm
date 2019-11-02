@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mage.crm.dao.DataDicDao">
+    <select id="queryDataDicValueByDataDicName" parameterType="string" resultType="dataDic">
+        Select data_dic_value as dataDicValue
+        from t_dataDic
+        where data_dic_name=#{dataDicName} and is_valid=1
+    </select>
+
+    <select id="queryConstitute" resultType="com.mage.crm.dto.DataDicDto">
+        SELECT
+            d.data_dic_value dataDicValue, COUNT(1) total
+        FROM
+            t_datadic d
+        LEFT JOIN t_customer c ON c.`level` = d.data_dic_value
+        WHERE d.is_valid = 1 AND c.is_valid = 1
+        GROUP BY d.id
+    </select>
+</mapper>

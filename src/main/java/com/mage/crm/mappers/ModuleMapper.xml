@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mage.crm.dao.ModuleDao">
+    <select id="queryAllModuleDtos" resultType="com.mage.crm.dto.ModuleDto">
+        SELECT
+            id, IFNULL(parent_id, 0) pId, module_name name
+        FROM
+            t_module
+        WHERE
+            is_valid = 1
+    </select>
+
+    <select id="queryModulesByParams" parameterType="moduleQuery" resultType="module">
+        SELECT t1.id, t1.module_name moduleName, t1.module_style moduleStyle, t2.module_name parentModuleName,
+        t1.url, t1.grade, t1.opt_value optValue, t1.create_date createDate, t1.update_date updateDate
+        FROM t_module t1
+        LEFT JOIN t_module t2 ON t1.parent_id = t2.id
+        <where>
+            t1.is_valid = 1
+            <if test="moduleName != null and moduleName != ''">
+                AND t1.module_name like CONCAT('%', #{moduleName} , '%')
+            </if>
+            <if test="optValue != null and optValue != ''">
+                AND t1.opt_value = #{optValue}
+            </if>
+            <if test="parentModuleName != null and parentModuleName != ''">
+                AND t2.module_name = CONCAT('%', #{parentModuleName} , '%')
+            </if>
+        </where>
+    </select>
+
+    <delete id="delete">
+        update t_module set is_valid=0
+        where id in
+        <foreach collection="array" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+
+    </delete>
+</mapper>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mage.crm.dao.UserDao">
+    <sql id="user_columns">
+        id , user_name as userName, user_pwd as userPwd,true_name as trueName,
+        phone,email,is_valid as isValid,create_date as createDate,update_date as
+        updateDate
+    </sql>
+
+    <insert id="insert" parameterType="user" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO t_user
+            (user_name, user_pwd, true_name, email, phone, is_valid, create_date, update_date)
+        VALUES
+            (#{userName}, #{userPwd}, #{trueName}, #{email}, #{phone}, #{isValid}, #{createDate}, #{updateDate})
+    </insert>
+
+    <update id="update" parameterType="user">
+        UPDATE t_user
+        SET
+            user_name = #{userName}, true_name = #{trueName}, email = #{email}, phone = #{phone}, update_date = #{updateDate}
+        WHERE
+            id = #{id}
+    </update>
+
+    <update id="delete" parameterType="int">
+        UPDATE t_user
+        SET is_valid = 0, update_date = now()
+        WHERE id = #{id}
+    </update>
+
+    <select id="queryUserByName" parameterType="string" resultType="user">
+        SELECT <include refid="user_columns"/>
+        FROM t_user
+        where user_name = #{userName}
+    </select>
+
+    <select id="queryUserById" parameterType="string" resultType="user">
+        SELECT <include refid="user_columns"/>
+        FROM t_user
+        where id = #{id}
+    </select>
+
+    <update id="updatePwd">
+        UPDATE t_user
+        SET user_pwd = #{userPwd}, update_date = now()
+        WHERE id = #{id}
+    </update>
+
+    <select id="queryUsersByParams" parameterType="userQuery" resultType="com.mage.crm.dto.UserDto">
+        SELECT
+            u.id, u.user_name as userName, u.true_name as trueName, u.email, u.phone,
+            GROUP_CONCAT(r.id) as roleIdsStr,GROUP_CONCAT(IFNULL(r.role_name, '') Separator '-') as roleName,
+            u.create_date as createDate, u.update_date as updateDate
+        FROM
+            t_user u
+        LEFT JOIN
+            (SELECT id, user_id, role_id, create_date, update_date, is_valid FROM t_user_role WHERE is_valid = 1) ur
+            ON u.id = ur.user_id
+        LEFT JOIN
+            t_role r ON ur.role_id = r.id
+        <where>
+            u.is_valid = 1
+            <if test="userName != null and userName != ''">
+                AND user_name like concat('%', #{userName}, '%')
+            </if>
+            <if test="trueName != null and trueName != ''">
+                AND true_name like concat('%', #{trueName}, '%')
+            </if>
+            <if test="phone != null and phone != ''">
+                AND phone like concat('%', #{phone}, '%')
+            </if>
+            <if test="email != null and email != ''">
+                AND email like concat('%', #{email}, '%')
+            </if>
+        </where>
+        GROUP BY u.id
+    </select>
+</mapper>
